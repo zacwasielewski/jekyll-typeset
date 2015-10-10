@@ -2,23 +2,13 @@ require 'open3'
 require 'tempfile'
 
 module Jekyll
-  class TypesetConverter < Converter
-    safe true
-    priority :low
+  class Typeset < Plugin
 
-    def matches(ext)
-      ext =~ /^.*$/i
+    def initialize(site)
+      @site = site
     end
 
-    def output_ext(ext)
-      ".html"
-    end
-
-    def convert(content)
-      self.typeset(content)
-    end
-
-    def typeset(html)
+    def convert(html)
       tmp = Tempfile.new('jekyll-typeset')
       begin
         tmp.write(html)
@@ -30,5 +20,11 @@ module Jekyll
       end
       out
     end
+
   end
+end
+
+Jekyll::Hooks.register [:page, :post], :post_render do |owner|
+  typeset = Jekyll::Typeset.new(owner.site)
+  owner.output = typeset.convert(owner.output)
 end
